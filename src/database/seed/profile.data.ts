@@ -1,4 +1,5 @@
 import type { LinkKind, SkillCategory } from '../../generated/prisma/enums.js';
+import { OWNER_PROFILE_SLUG } from '../../profile/profile.constants.js';
 
 /**
  * Content of the digital card.
@@ -41,7 +42,7 @@ export interface ProfileSeedData {
 }
 
 export const profileData: ProfileSeedData = {
-  slug: 'andrey-bychenkov',
+  slug: OWNER_PROFILE_SLUG,
   name: 'Андрей Быченков',
   title: 'Python Backend-разработчик',
   description:
