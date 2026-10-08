@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""A concrete result the owner reached in a job."""
+type Achievement {
+  id: ID!
+  text: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -18,6 +24,8 @@ type Education {
 
 """A job the owner has worked at."""
 type Experience {
+  """What the owner achieved in this job."""
+  achievements: [Achievement!]!
   company: String!
   description: String
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Experience } from '../generated/prisma/client.js';
 import { countMonths, formatPeriod } from './experience-period.js';
+import { AchievementModel } from './models/achievement.model.js';
 import { ExperienceModel } from './models/experience.model.js';
 import { ExperienceRepository } from './experience.repository.js';
 
@@ -11,6 +12,20 @@ export class ExperienceService {
   async findForProfile(profileId: number, now: Date = new Date()): Promise<ExperienceModel[]> {
     const rows = await this.experiences.findByProfileId(profileId);
     return rows.map((row) => toExperienceModel(row, now));
+  }
+
+  /** Achievements of many jobs at once, grouped by experience id. Jobs without any are absent. */
+  async findAchievementsByExperienceIds(
+    experienceIds: number[],
+  ): Promise<Map<number, AchievementModel[]>> {
+    const rows = await this.experiences.findAchievementsByExperienceIds(experienceIds);
+    const byExperience = new Map<number, AchievementModel[]>();
+    for (const row of rows) {
+      const list = byExperience.get(row.experienceId) ?? [];
+      list.push({ id: row.id, text: row.text });
+      byExperience.set(row.experienceId, list);
+    }
+    return byExperience;
   }
 }
 
