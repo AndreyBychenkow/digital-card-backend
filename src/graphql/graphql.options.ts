@@ -24,7 +24,8 @@ export function buildGraphQLOptions(): ApolloDriverConfig {
   return {
     path: '/graphql',
     // The schema file is handy for reviewing the API. In production the file is not written.
-    autoSchemaFile: process.env.NODE_ENV === 'production' ? true : join(process.cwd(), 'schema.gql'),
+    autoSchemaFile:
+      process.env.NODE_ENV === 'production' ? true : join(process.cwd(), 'schema.gql'),
     sortSchema: true,
     // Apollo Sandbox is the GraphQL IDE here, so NestJS' own GraphiQL page is turned off.
     graphiql: false,

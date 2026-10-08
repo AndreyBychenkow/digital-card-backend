@@ -16,7 +16,9 @@ export class AchievementsLoader {
 
   constructor(private readonly experiences: ExperienceService) {
     this.loader = new DataLoader<number, AchievementModel[]>(async (experienceIds) => {
-      const byExperience = await this.experiences.findAchievementsByExperienceIds([...experienceIds]);
+      const byExperience = await this.experiences.findAchievementsByExperienceIds([
+        ...experienceIds,
+      ]);
       // DataLoader requires one result per key, in the same order as the keys.
       return experienceIds.map((experienceId) => byExperience.get(experienceId) ?? []);
     });

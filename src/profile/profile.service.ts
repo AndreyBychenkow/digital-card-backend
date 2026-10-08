@@ -14,7 +14,9 @@ export class ProfileService {
     if (!profile) {
       // The seed runs on every start, so a missing row means the database was never prepared.
       // This is a server-side problem, so the client gets an internal error, not a 404.
-      throw new Error(`Profile "${OWNER_PROFILE_SLUG}" is missing from the database. Seed has not run.`);
+      throw new Error(
+        `Profile "${OWNER_PROFILE_SLUG}" is missing from the database. Seed has not run.`,
+      );
     }
 
     return {
