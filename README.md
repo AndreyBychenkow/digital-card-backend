@@ -167,6 +167,15 @@ docker/postgres/init/     создание тестовой базы при пе
 - `docker-entrypoint.sh` при каждом старте выполняет `prisma migrate deploy`, затем seed и только потом запускает `node dist/main.js`. Сигналы доходят до Node напрямую, а `enableShutdownHooks` закрывает соединения с базой при остановке.
 - `docker-compose.yml` поднимает PostgreSQL с healthcheck и запускает API только после того, как база стала `healthy`.
 
+## Проверка с нуля
+
+Прогон в песочнице с пустым volume: `docker compose down -v`, затем `docker compose up --build`.
+
+- База стала `healthy`. Миграция `20261008143811_init` применилась, seed записал профиль: 4 ссылки, 32 навыка, 2 места работы с 11 достижениями, 4 проекта и 1 запись об образовании.
+- Перезапуск контейнера: миграций нет (`No pending migrations to apply`), seed дал те же счётчики.
+- Запрос из раздела «Быстрый старт» возвращает данные, `/health` отвечает `{"status":"ok","database":"up"}`.
+- e2e-набор (8 тестов) проходит против базы из compose.
+
 ## Деплой на Render
 
 В репозитории есть `render.yaml` (Blueprint): веб-сервис из `Dockerfile` и база PostgreSQL 17.
