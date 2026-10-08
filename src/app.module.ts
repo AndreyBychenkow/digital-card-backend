@@ -4,6 +4,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { validateEnv } from './config/env.validation.js';
 import { DatabaseModule } from './database/database.module.js';
+import { HealthModule } from './health/health.module.js';
 import { ExperienceModule } from './experience/experience.module.js';
 import { ProfileModule } from './profile/profile.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
@@ -18,6 +19,7 @@ import { buildGraphQLOptions } from './graphql/graphql.options.js';
       ...buildGraphQLOptions(),
     }),
     DatabaseModule,
+    HealthModule,
     ProfileModule,
     SkillsModule,
     ExperienceModule,
