@@ -1,0 +1,26 @@
+# Render Blueprint: the API and its PostgreSQL database.
+# In Render: New → Blueprint → pick this repository. See README.md, section "Деплой на Render".
+
+databases:
+  - name: digital-card-db
+    databaseName: digital_card
+    user: card
+    postgresMajorVersion: '17'
+    plan: free
+    # Empty list: only services inside Render can connect, nobody from the internet.
+    ipAllowList: []
+
+services:
+  - type: web
+    name: digital-card-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    # The deploy is considered successful once /health answers 200 (it checks the database too).
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: digital-card-db
+          property: connectionString

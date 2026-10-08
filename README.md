@@ -1,124 +1,185 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Цифровая визитка: backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+GraphQL API для цифровой визитки Андрея Быченкова: профиль, ссылки, образование, навыки, опыт работы с достижениями и проекты.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Данные взяты с сайта [decebell032rus.pythonanywhere.com](https://decebell032rus.pythonanywhere.com) и с [GitHub](https://github.com/AndreyBychenkow). Сбор выполнен 8 октября 2026 года.
 
-## Description
+## Стек
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Что | Чем |
+|---|---|
+| Язык и рантайм | TypeScript 6, Node.js 24 (минимум 20.19) |
+| Фреймворк | NestJS 12, ESM (`module: nodenext`) |
+| GraphQL | `@nestjs/graphql` 14 (code-first), `@nestjs/apollo` 14, Apollo Server 5, Apollo Sandbox |
+| База данных | PostgreSQL 17, Prisma 7 через `@prisma/adapter-pg` |
+| Батчинг | DataLoader (`dataloader`) |
+| Тесты | Vitest 4, supertest, SWC (для DI в тестах) |
+| Линтер и форматирование | oxlint, Prettier |
+| Контейнеры | Docker (multi-stage), Docker Compose |
 
-## Project setup
+## Быстрый старт через Docker
+
+Нужны Docker и Docker Compose. Ничего заранее создавать не надо: база, миграции и данные создаются при первом запуске.
 
 ```bash
-$ npm install
+docker compose up --build
 ```
 
-## Compile and run the project
+После запуска:
+
+- GraphQL и Apollo Sandbox: <http://localhost:3000/graphql> (откройте в браузере);
+- проверка работоспособности: <http://localhost:3000/health>.
+
+Если порты заняты, их можно сменить: `API_PORT=3001 POSTGRES_PORT=5433 docker compose up --build`.
+
+Пример запроса из технического задания:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+curl -X POST http://localhost:3000/graphql \
+  -H 'content-type: application/json' \
+  -d '{"query":"query { profile { name description skills { name } experience { company position } projects { name } } }"}'
 ```
 
-## Run tests
+Остановить и удалить данные базы: `docker compose down -v`. Без `-v` данные сохраняются в volume `pgdata`.
 
-```bash
-# unit tests
-$ npm run test
+## Локальная разработка без Docker
 
-# e2e tests
-$ npm run test:e2e
+1. Установите PostgreSQL 17 и создайте базу `digital_card` (пользователь и пароль на ваш выбор).
+2. Скопируйте `.env.example` в `.env` и поправьте `DATABASE_URL`.
+3. Установите зависимости и подготовьте базу:
 
-# test coverage
-$ npm run test:cov
+   ```bash
+   npm install
+   npm run db:setup      # миграции и заполнение данными
+   npm run start:dev     # сервер с перезагрузкой на http://localhost:3000/graphql
+   ```
+
+## Скрипты
+
+| Команда | Что делает |
+|---|---|
+| `npm run start:dev` | Запуск в режиме разработки с перезагрузкой |
+| `npm run build` | Сборка в `dist/` |
+| `npm run start:prod` | Запуск собранной версии (`dist/main.js`) |
+| `npm run db:migrate` | Применить миграции Prisma (`prisma migrate deploy`) |
+| `npm run db:migrate:dev` | Создать новую миграцию после изменения `schema.prisma` |
+| `npm run db:seed` | Привести данные в базе к `profile.data.ts` |
+| `npm run db:setup` | Миграции и seed подряд |
+| `npm test` | Unit-тесты |
+| `npm run test:e2e` | e2e-тесты на отдельной базе |
+| `npm run lint` | oxlint с проверкой типов |
+| `npm run format` | Prettier |
+
+## Переменные окружения
+
+| Переменная | Обязательна | По умолчанию | Описание |
+|---|---|---|---|
+| `DATABASE_URL` | да | — | Строка подключения к PostgreSQL |
+| `PORT` | нет | `3000` | Порт HTTP-сервера (от 1 до 65535) |
+| `E2E_DATABASE_URL` | нет | `…/digital_card_test` | База для e2e-тестов. Её нельзя брать равной рабочей базе |
+| `API_PORT`, `POSTGRES_PORT` | нет | `3000`, `5432` | Порты на хосте для `docker compose` |
+
+Приложение проверяет переменные при старте и завершается с понятной ошибкой, если `DATABASE_URL` не задан или `PORT` некорректен.
+
+## API
+
+Единственная точка входа — `Query.profile`. Остальное открывается через вложенные поля:
+
+```graphql
+query {
+  profile {
+    name
+    title
+    description
+    links { kind label url }
+    education { institution degree graduationYear }
+    skills(category: TESTING) { name category }   # фильтр необязателен
+    experience {
+      company
+      position
+      period          # "Февраль 2026 — Август 2026" или "… — настоящее время"
+      isCurrent
+      durationMonths
+      achievements { text }
+    }
+    projects { name url technologies }
+  }
+}
 ```
 
-## Deployment
+Полная схема собрана в файле `schema.gql` (он создаётся при запуске вне production). Её же можно посмотреть в Apollo Sandbox, там есть документация к полям.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Значения `SkillCategory`: `LANGUAGES_AND_FRAMEWORKS`, `API_AND_ARCHITECTURE`, `DATABASES_AND_QUEUES`, `DEVOPS_AND_INFRASTRUCTURE`, `TESTING`.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Структура проекта
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+src/
+  main.ts                 точка входа: завершение по SIGTERM, CORS, порт
+  app.module.ts           корневой модуль
+  config/                 проверка переменных окружения при старте
+  database/               PrismaService и seed (database/seed)
+  graphql/                настройки Apollo: путь, Sandbox, схема
+  health/                 GET /health
+  profile/                Query.profile, ссылки, образование
+  skills/                 навыки и фильтр по категории
+  experience/             опыт, период работы, достижения (DataLoader)
+  projects/               проекты
+prisma/                   schema.prisma и миграции
+test/                     e2e-тесты и подготовка их базы
+docker/postgres/init/     создание тестовой базы при первом старте PostgreSQL
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Внутри каждого модуля слои разделены так:
 
-## Observability
+- `*.repository.ts` — только запросы к базе через Prisma;
+- `*.service.ts` — правила и сборка моделей для API;
+- `*.resolver.ts` — GraphQL-слой (Query и ResolveField), без обращений к базе;
+- `models/*.model.ts` — GraphQL-типы. Они не совпадают с типами Prisma, поэтому схема API не зависит от устройства таблиц.
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+### Вложенные данные и N+1
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+Достижения грузятся через DataLoader (`experience/achievements.loader.ts`). Загрузчик живёт в рамках одного запроса: все опыты, которые запрошены в нём, получают достижения одним SQL-запросом `WHERE "experienceId" IN (...)`. Это проверено по журналу PostgreSQL: при запросе двух мест работы с достижениями выполняется один такой запрос. Юнит-тест и e2e-тест проверяют то же самое на уровне кода.
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+## База данных и seed
 
-To add it to this project:
+- Схема описана в `prisma/schema.prisma`. Миграции лежат в `prisma/migrations`.
+- Данные визитки хранятся в `src/database/seed/profile.data.ts`. Это источник истины.
+- **Seed идемпотентный и выполняется при каждом старте.** Он находит профиль по `slug`, создаёт его или обновляет, а дочерние записи (ссылки, навыки, опыт, достижения, проекты, образование) пересоздаёт. Всё идёт в одной транзакции под `pg_advisory_xact_lock`, поэтому читатель никогда не увидит половину профиля, а два одновременных запуска не конфликтуют.
+- Следствие: **ID дочерних записей (ссылок, навыков, опыта, достижений, проектов, образования) меняются при каждой синхронизации.** Внешним клиентам на них полагаться нельзя. ID самого профиля стабилен: seed обновляет ту же строку.
+- Чтобы изменить визитку, правьте `profile.data.ts` и перезапускайте приложение (или `npm run db:seed`).
 
-```bash
-$ npm install @nestjs/observe
-```
+Навыки взяты с сайта. Технологий, которых на сайте нет (например, TypeScript, NestJS, Prisma и GraphQL в этом проекте), в навыках нет, пока владелец визитки не подтвердит их добавление.
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+## Проверки и healthcheck
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+`GET /health` выполняет `SELECT 1`. При ответе `200 {"status":"ok","database":"up"}` база доступна. Если база недоступна, возвращается `503`. Этот адрес используют Docker HEALTHCHECK и Render.
 
-## Resources
+Тесты:
 
-Check out a few resources that may come in handy when working with NestJS:
+- `npm test` — 14 unit-тестов: проверка env, период работы, батчинг достижений, health, ошибка при отсутствующем профиле.
+- `npm run test:e2e` — 8 e2e-тестов: запрос из ТЗ, вложенные поля, батчинг, фильтр навыков, ошибки валидации, Apollo Sandbox, идемпотентность seed. Перед запуском тесты применяют миграции и seed к `E2E_DATABASE_URL`. Базу `digital_card_test` создаёт `docker compose` при первом создании volume `pgdata`. Если вы поднимаете свою PostgreSQL, создайте её сами: `createdb digital_card_test`.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Docker
 
-## Support
+- `Dockerfile` собирается в несколько стадий: общая база с OpenSSL, сборка, зависимости только для production и runtime-образ. Образ основан на `node:24-slim`: Prisma нуждается в OpenSSL, которого нет в Alpine по умолчанию.
+- Приложение работает от пользователя `node`, а не от root.
+- `docker-entrypoint.sh` при каждом старте выполняет `prisma migrate deploy`, затем seed и только потом запускает `node dist/main.js`. Сигналы доходят до Node напрямую, а `enableShutdownHooks` закрывает соединения с базой при остановке.
+- `docker-compose.yml` поднимает PostgreSQL с healthcheck и запускает API только после того, как база стала `healthy`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Деплой на Render
 
-## Stay in touch
+В репозитории есть `render.yaml` (Blueprint): веб-сервис из `Dockerfile` и база PostgreSQL 17.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+1. Загрузите репозиторий на GitHub.
+2. В Render выберите **New → Blueprint** и укажите репозиторий. Render создаст `digital-card-db` и `digital-card-api`, а `DATABASE_URL` подставит из базы.
+3. Дождитесь деплоя (healthcheck идёт по `/health`) и откройте `https://<имя-сервиса>.onrender.com/graphql`.
 
-## License
+Ограничения бесплатного плана: веб-сервис засыпает без трафика, поэтому первый запрос после паузы идёт дольше. Бесплатная база на Render ограничена по времени действия, подробности в документации Render. По умолчанию регион — Oregon. Чтобы выбрать другой, добавьте `region` и сервису, и базе в одном и том же регионе: строка подключения `fromDatabase` работает только внутри региона.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Решения, которые стоит знать
+
+- **Helmet не подключён.** Его CSP по умолчанию блокирует скрипты с CDN, а Apollo Sandbox загружается именно оттуда. Если понадобятся защитные заголовки, добавьте Helmet с CSP, разрешающей CDN Apollo.
+- **CORS открыт для любых источников** (`*`). Данные публичные, API только для чтения.
+- **Нет авторизации и мутаций.** Визитка — публичные данные, которые меняются только через seed.
+- **Перед деплоем** проверьте, что `DATABASE_URL` указывает на базу, которую вы хотите использовать.
