@@ -4,6 +4,9 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  // Pinned so the generated imports end in .js whether or not tsconfig.json is present
+  // (the Docker build runs `prisma generate` before the TypeScript config is copied).
+  importFileExtension = "js"
 }
 
 datasource db {

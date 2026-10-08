@@ -1,0 +1,20 @@
+# Keep the build context small and free of secrets and local artefacts.
+.git
+.gitignore
+node_modules
+dist
+coverage
+src/generated
+schema.gql
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+test
+vitest.config.ts
+vitest.config.e2e.ts
+Dockerfile
+.dockerignore
+docker-compose.yml
+render.yaml
+README.md

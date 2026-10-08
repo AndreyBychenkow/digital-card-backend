@@ -1,0 +1,41 @@
+# Runs the whole backend from an empty state: PostgreSQL, then the API that
+# migrates and seeds the database on start.
+#
+#   docker compose up --build
+#   open http://localhost:3000/graphql
+#
+# Host ports can be changed with API_PORT and POSTGRES_PORT if they are taken.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: card
+      POSTGRES_PASSWORD: card
+      POSTGRES_DB: digital_card
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U card -d digital_card"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://card:card@db:5432/digital_card?schema=public
+      PORT: 3000
+    ports:
+      - "${API_PORT:-3000}:3000"
+
+volumes:
+  pgdata:
