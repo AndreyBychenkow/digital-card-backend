@@ -32,12 +32,38 @@ docker compose up --build
 
 Если порты заняты, их можно сменить: `API_PORT=3001 POSTGRES_PORT=5433 docker compose up --build`.
 
-Пример запроса из технического задания:
+Пример запроса — все данные по ТЗ:
+
+```graphql
+query {
+  profile {
+    name
+    description
+    skills {
+      name
+    }
+    experience {
+      company
+      position
+      period
+      achievements {
+        text
+      }
+    }
+    projects {
+      name
+      url
+    }
+  }
+}
+```
+
+Тот же запрос через curl:
 
 ```bash
 curl -X POST http://localhost:3000/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"query { profile { name description skills { name } experience { company position } projects { name } } }"}'
+  -d '{"query":"query { profile { name description skills { name } experience { company position period achievements { text } } projects { name url } } }"}'
 ```
 
 Остановить и удалить данные базы: `docker compose down -v`. Без `-v` данные сохраняются в volume `pgdata`.

@@ -20,7 +20,17 @@ coverage/
 *.log
 npm-debug.log*
 
+# generated GraphQL schema (recreated on startup outside production)
+schema.gql
+
+# Render / deployment artifacts
+.render-buildinfo.json
+
+# OS / CI artifacts
+*.tsbuildinfo
+
 # editors and OS files
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db

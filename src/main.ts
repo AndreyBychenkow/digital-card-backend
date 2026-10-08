@@ -9,8 +9,15 @@ async function bootstrap(): Promise<void> {
   // On SIGTERM (a redeploy in Docker or on Render) Nest runs onModuleDestroy,
   // so the database connections are closed instead of dropped.
   app.enableShutdownHooks();
-  // The card is public and read-only, so a browser on any origin may call the API.
-  app.enableCors();
+
+  // The card is public and read-only, so any origin is allowed by default.
+  // Set CORS_ORIGIN to a comma-separated list of origins to restrict access,
+  // for example: CORS_ORIGIN=https://mysite.com,https://staging.mysite.com
+  const corsOrigin = app.get(ConfigService).get<string>('CORS_ORIGIN');
+  app.enableCors({
+    origin: corsOrigin ? corsOrigin.split(',').map((o) => o.trim()) : true,
+    methods: ['GET', 'POST'],
+  });
 
   const port = app.get(ConfigService).getOrThrow<number>('PORT');
   // 0.0.0.0 makes the server reachable from outside the container.
